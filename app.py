@@ -11,8 +11,9 @@ cursor = conn.cursor()
 cursor.execute('''
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        password TEXT NOT NULL,
+        password_hash TEXT NOT NULL,
         username TEXT NOT NULL UNIQUE,
+        email TEXT NOT NULL UNIQUE,
         is_pressed INTEGER DEFAULT 0,
         hash TEXT NOT NULL
     )
@@ -23,6 +24,14 @@ conn.close()
 
 def generate_random_hash():
     return secrets.token_hex(15)
+
+
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+
+
+def verify_password(plain_password, hashed_password):
+    return hashlib.sha256(plain_password.encode()).hexdigest() == hashed_password
 
 
 @app.route('/get_user_id_by_username', methods=['GET'])
@@ -50,9 +59,11 @@ def create_user():
 
     conn = sqlite3.connect('data.db')
     cursor = conn.cursor()
+    hashed_password = hash_password(data['password'])
     cursor.execute('''
-        INSERT INTO users (password , username, is_pressed, hash) VALUES (?, ?, ?, ?)
-    ''', (data['password'], data['username'], data.get('is_pressed', 0), random_hash))
+        INSERT INTO users (password_hash, username, email, is_pressed, hash)
+        VALUES (?, ?, ?, ?, ?)
+    ''', (hashed_password, data['username'], data['email'], data.get('is_pressed', 0), random_hash))
 
     conn.commit()
     conn.close()
@@ -68,7 +79,13 @@ def get_user(user_id):
     conn.close()
 
     if user:
-        return jsonify({'id': user[0], 'password': user[1], 'username': user[2], 'is_pressed': bool(user[3])})
+        return jsonify({
+            'id': user[0],
+            'password': user[1],
+            'username': user[2],
+            'email': user[3],  # Добавляем поле для почты
+            'is_pressed': bool(user[4])
+        })
     else:
         return jsonify({'message': 'User not found'}), 404
 
@@ -89,16 +106,17 @@ def update_user(user_id):
 
     # Обновляем значения, если они предоставлены в запросе
     user_data = {
-        'password': data.get('password', user[1]),
+        'password_hash': hash_password(data.get('password')) if 'password' in data else user[1],
         'username': data.get('username', user[2]),
-        'is_pressed': data.get('is_pressed', user[3])
+        'email': data.get('email', user[3]),  # Добавляем поле для почты
+        'is_pressed': data.get('is_pressed', user[4])
     }
 
     cursor.execute('''
         UPDATE users
-        SET password = ?, username = ?, is_pressed = ?
+        SET password_hash = ?, username = ?, email = ?, is_pressed = ?
         WHERE id = ?
-    ''', (user_data['password'], user_data['username'], user_data['is_pressed'], user_id))
+    ''', (user_data['password_hash'], user_data['username'], user_data['email'], user_data['is_pressed'], user_id))
 
     conn.commit()
     conn.close()
