@@ -1,4 +1,4 @@
-package com.qers.view;
+package com.qers.qers;
 
 import android.content.Context;
 
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
     public void useAppContext() {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        assertEquals("com.qers.view", appContext.getPackageName());
+        assertEquals("com.qers.qers", appContext.getPackageName());
     }
 }

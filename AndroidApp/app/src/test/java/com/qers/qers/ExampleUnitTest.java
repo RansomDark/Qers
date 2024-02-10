@@ -1,4 +1,4 @@
-package com.qers.view;
+package com.qers.qers;
 
 import org.junit.Test;
 
