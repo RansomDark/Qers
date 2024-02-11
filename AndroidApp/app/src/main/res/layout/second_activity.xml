@@ -32,4 +32,32 @@
         app:layout_constraintTop_toTopOf="@+id/view3"
         app:layout_constraintVertical_bias="0.0" />
 
+    <Button
+        android:id="@+id/logout_button"
+        android:layout_width="417dp"
+        android:layout_height="80dp"
+        android:layout_alignParentBottom="true"
+        android:background="#673AB7"
+        android:backgroundTint="#673AB7"
+        android:text="Выйти из аккаунта"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/switches"
+        app:layout_constraintVertical_bias="1.0" />
+
+    <ImageView
+        android:id="@+id/switches"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.496"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/view3"
+        android:clickable="true"
+        app:layout_constraintVertical_bias="0.361"
+        tools:srcCompat="@drawable/button_off" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
