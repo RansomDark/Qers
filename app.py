@@ -57,20 +57,52 @@ def get_user_id_by_username():
 
 @app.route('/user', methods=['POST'])
 def create_user():
+    app.logger.info("Start creating user")
+
     data = request.get_json()
     random_hash = generate_random_hash()
 
+    if 'username' not in data or 'password' not in data or 'email' not in data:
+        return jsonify({'error': 'Username, password, and email are required'}), 400
+
+    username = data['username']
+    password = data['password']
+    email = data['email']
+    app.logger.info(f"User: {username} with email: {email}, checking now")
+
     conn = sqlite3.connect('data.db')
     cursor = conn.cursor()
-    hashed_password = hash_password(data['password'])
-    cursor.execute('''
-        INSERT INTO users (password_hash, username, email, is_pressed, hash)
-        VALUES (?, ?, ?, ?, ?)
-    ''', (hashed_password, data['username'], data['email'], data.get('is_pressed', 0), random_hash))
 
-    conn.commit()
-    conn.close()
-    return jsonify({'message': 'User created successfully'}), 201
+    # Проверка существующего пользователя по имени пользователя
+    cursor.execute('SELECT COUNT(*) FROM users WHERE username = ?', (username,))
+    if cursor.fetchone()[0] > 0:
+        conn.close()
+        return jsonify({'error': "There is already such a login"}), 400
+
+    # Проверка существующего пользователя по электронной почте
+    cursor.execute('SELECT COUNT(*) FROM users WHERE email = ?', (email,))
+    if cursor.fetchone()[0] > 0:
+        conn.close()
+        return jsonify({'error': "There is already such an email"}), 400
+
+    hashed_password = hash_password(password)
+    try:
+        cursor.execute('''
+            INSERT INTO users (password_hash, username, email, is_pressed, hash)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (hashed_password, data['username'], data['email'], data.get('is_pressed', 0), random_hash))
+
+        conn.commit()
+        conn.close()
+
+        app.logger.info("User created successfully")
+        return jsonify({'message': 'User created successfully'}), 201
+    except Exception as e:
+        conn.rollback()
+        conn.close()
+
+        app.logger.error("Internal Server Error")
+        return jsonify({'error': 'Internal Server Error'}), 500
 
 
 @app.route('/user/<int:user_id>', methods=['GET'])
