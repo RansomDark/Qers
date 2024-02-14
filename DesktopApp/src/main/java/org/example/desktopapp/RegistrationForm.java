@@ -12,9 +12,15 @@ import javafx.stage.Stage;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.logging.*;
 
 public class RegistrationForm extends Application {
+    private static final String SERVER_URL = "http://5.35.96.143:5000/create_user";
     public static void main(String[] args) {
         launch(args);
     }
@@ -22,7 +28,7 @@ public class RegistrationForm extends Application {
     @Override
     public void start(Stage primaryStage) {
 
-        Logger logger = Logger.getLogger(RegistrationForm.class.getName());
+            Logger logger = Logger.getLogger(RegistrationForm.class.getName());
 
         primaryStage.setTitle("Регистрация пользователя");
 
@@ -54,12 +60,15 @@ public class RegistrationForm extends Application {
         Text loginErrorText = new Text("Некорректный формат почты");
         loginErrorText.setFill(Color.RED);
         loginErrorText.setVisible(false);
+
         Text emailErrorText = new Text("Некорректный формат почты");
         emailErrorText.setFill(Color.RED);
         emailErrorText.setVisible(false);
+
         Text passwordErrorText = new Text("Некорректный формат почты");
         passwordErrorText.setFill(Color.RED);
         passwordErrorText.setVisible(false);
+
         Text password2ErrorText = new Text("Некорректный формат почты");
         password2ErrorText.setFill(Color.RED);
         password2ErrorText.setVisible(false);
@@ -102,6 +111,16 @@ public class RegistrationForm extends Application {
                 if (!isValidEmail(email)) {
                     emailErrorText.setVisible(true);
                     emailField.pseudoClassStateChanged(PseudoClass.getPseudoClass("invalid"), true);
+                } else {
+                    boolean registrationSuccessful = sendRegistrationDetails(login, email, password);
+
+                    if (registrationSuccessful) {
+                        logger.log(Level.INFO, "User with login: " + login
+                                                    + ", email: " + email + "registered successfully");
+                    } else {
+                        logger.log(Level.WARNING, "User with login: " + login
+                                + ", email: " + email + "registered invalid");
+                    }
                 }
         });
 
@@ -177,6 +196,41 @@ public class RegistrationForm extends Application {
         bottomPane.setCenter(registerButton);
 
         return bottomPane;
+    }
+
+    private boolean sendRegistrationDetails(String login, String email, String password) {
+        try {
+            URL url = new URL(SERVER_URL);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setDoOutput(true);
+
+            String jsonInputString = "{"
+                    + "\"login\":\"" + login + "\","
+                    + "\"email\":\"" + email + "\","
+                    + "\"password\":\"" + password + "\""
+                    + "}";
+            try (OutputStream os = connection.getOutputStream()) {
+                byte[] input = jsonInputString.getBytes("utf-8");
+                os.write(input, 0, input.length);
+            }
+
+            try (BufferedReader br = new BufferedReader(
+                    new InputStreamReader(connection.getInputStream(), "utf-8"))) {
+                StringBuilder response = new StringBuilder();
+                String responseLine = null;
+                while ((responseLine = br.readLine()) != null) {
+                    response.append(responseLine.trim());
+                }
+
+                return response.toString().equals("success");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     private boolean isValidEmail(String email) {
