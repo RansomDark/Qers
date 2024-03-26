@@ -2,17 +2,18 @@ package org.example.desktopapp;
 
 import javafx.application.Application;
 import javafx.css.PseudoClass;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 
 import java.util.logging.*;
+import java.io.*;
+
 
 public class RegistrationForm extends Application {
     public static void main(String[] args) {
@@ -21,8 +22,9 @@ public class RegistrationForm extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-
         Logger logger = Logger.getLogger(RegistrationForm.class.getName());
+
+        String[] credentials = FileUtils.loadCredentials();
 
         primaryStage.setTitle("Регистрация пользователя");
 
@@ -51,25 +53,28 @@ public class RegistrationForm extends Application {
 
         Button registerButton = new Button("Зарегистрироваться");
 
-        Text loginErrorText = new Text("Некорректный формат почты");
+        Text loginErrorText = new Text("");
         loginErrorText.setFill(Color.RED);
         loginErrorText.setVisible(false);
+
         Text emailErrorText = new Text("Некорректный формат почты");
         emailErrorText.setFill(Color.RED);
         emailErrorText.setVisible(false);
-        Text passwordErrorText = new Text("Некорректный формат почты");
+
+        Text passwordErrorText = new Text("");
         passwordErrorText.setFill(Color.RED);
         passwordErrorText.setVisible(false);
-        Text password2ErrorText = new Text("Некорректный формат почты");
+
+        Text password2ErrorText = new Text("Пароли не совпадают");
         password2ErrorText.setFill(Color.RED);
         password2ErrorText.setVisible(false);
 
         BorderPane layout = new BorderPane();
-        layout.setCenter(createCenterPane(loginField, loginErrorText,
+        layout.setCenter(PaneUtils.createCenterPane(loginField, loginErrorText,
                                          emailField, emailErrorText,
                                          passwordField, passwordErrorText,
                                          password2Field, password2ErrorText));
-        layout.setBottom(createBottomPane(registerButton));
+        layout.setBottom(PaneUtils.createBottomPane(registerButton));
 
         Scene scene = new Scene(layout, 800, 600);
         scene.getRoot().requestFocus();
@@ -88,21 +93,89 @@ public class RegistrationForm extends Application {
         primaryStage.setFullScreen(false);
         primaryStage.setResizable(false);
 
-        layout.setOnMouseClicked(event -> layout.requestFocus());
+        layout.setOnMouseReleased(event -> layout.requestFocus());
 
         registerButton.setOnAction(e -> {
             logger.log(Level.INFO, "Кнопка регистрации нажата");
             // Обработка нажатия кнопки регистрации
+
             String login = loginField.getText();
             String email = emailField.getText();
             String password = passwordField.getText();
             String password2 = password2Field.getText();
 
-            if (!email.isEmpty() && !login.isEmpty() && !password.isEmpty() && !password2.isEmpty())
-                if (!isValidEmail(email)) {
+            if (!email.isEmpty() && !login.isEmpty() && !password.isEmpty() && !password2.isEmpty()) {
+                if (!ValidationUtils.isValidEmail(email)) {
                     emailErrorText.setVisible(true);
                     emailField.pseudoClassStateChanged(PseudoClass.getPseudoClass("invalid"), true);
+
+                    return;
                 }
+
+                String passwordValidationResult = ValidationUtils.validatePassword(password);
+
+                if (passwordValidationResult != null) {
+                    passwordErrorText.setText(passwordValidationResult);
+                    passwordErrorText.setVisible(true);
+                    passwordField.pseudoClassStateChanged(PseudoClass.getPseudoClass("invalid"), true);
+
+                    return;
+                }
+
+                if (!password.equals(password2)) {
+                    password2ErrorText.setVisible(true);
+                    password2Field.pseudoClassStateChanged(PseudoClass.getPseudoClass("invalid"), true);
+
+                    return;
+                }
+
+                String registrationResponse = NetworkUtils.sendRegistrationDetails(login, email, password);
+
+                if (registrationResponse != null) {
+                    if (registrationResponse.contains("User created successfully")) {
+                        logger.log(Level.INFO, "Пользователь с логином: " + login
+                                + ", адресом электронной почты: " + email + " успешно зарегистрирован");
+
+                        // Сохраняем учетные данные пользователя
+                        FileUtils.saveCredentials(login, password);
+
+                        registerButton.getScene().getWindow().hide();
+                        FXMLLoader loader = new FXMLLoader();
+                        loader.setLocation(getClass().getResource("/org/example/desktopapp/hello-view.fxml"));
+
+                        try {
+                            loader.load();
+                        } catch (IOException ex) {
+                            throw new RuntimeException(ex);
+                        }
+
+                        Parent root = loader.getRoot();
+                        Stage stage = new Stage();
+                        stage.setScene(new Scene(root));
+                        stage.showAndWait();
+
+                    } else if (registrationResponse.contains("There is already such a login")) {
+                        logger.log(Level.INFO, "Такой логин уже существует");
+
+                        loginErrorText.setText("Такой логин уже существует");
+                        loginErrorText.setVisible(true);
+                        loginField.pseudoClassStateChanged(PseudoClass.getPseudoClass("invalid"), true);
+                    } else if (registrationResponse.contains("There is already such an email")) {
+                        logger.log(Level.INFO, "Такая почта уже существует");
+
+                        emailErrorText.setText("Такой адрес электронной почты уже используется");
+                        emailErrorText.setVisible(true);
+                        emailField.pseudoClassStateChanged(PseudoClass.getPseudoClass("invalid"), true);
+                    } else {
+                        logger.log(Level.WARNING, "Пользователь с логином: " + login
+                                + ", адресом электронной почты: " + email + " Сервер выдал ошибку");
+
+                    }
+                } else {
+                    // Обработка случая, когда ответ от сервера null или произошла ошибка
+                    logger.log(Level.WARNING, "Ошибка обработки ответа от сервера");
+                }
+            }
         });
 
         emailField.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -118,6 +191,7 @@ public class RegistrationForm extends Application {
                 loginField.setText(oldValue);
             }
             loginErrorText.setVisible(false);
+            loginField.pseudoClassStateChanged(PseudoClass.getPseudoClass("invalid"), false);
         });
 
         passwordField.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -125,6 +199,7 @@ public class RegistrationForm extends Application {
                 passwordField.setText(oldValue);
             }
             passwordErrorText.setVisible(false);
+            passwordField.pseudoClassStateChanged(PseudoClass.getPseudoClass("invalid"), false);
         });
 
         passwordField.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -132,6 +207,7 @@ public class RegistrationForm extends Application {
                 passwordField.setText(oldValue);
             }
             password2ErrorText.setVisible(false);
+            password2Field.pseudoClassStateChanged(PseudoClass.getPseudoClass("invalid"), false);
         });
 
         registerButton.setOnMousePressed(e -> registerButton.setStyle("-fx-background-color: #5E35B1; " +
@@ -139,49 +215,34 @@ public class RegistrationForm extends Application {
         registerButton.setOnMouseReleased(e -> registerButton.setStyle("-fx-background-color: #673AB7; " +
                 "-fx-font-size: 16px; -fx-text-fill: #FFFFFF;"));
 
+        if (credentials[0] != null && credentials[1] != null) {
+            // Данные аутентификации найдены, выполняем автоматическую аутентификацию
+            logger.log(Level.INFO, "Данные аунтецикации найдены");
 
-        primaryStage.show();
+            primaryStage.close();
 
+            FXMLLoader loader = new FXMLLoader();
+            loader.setLocation(getClass().getResource("/org/example/desktopapp/hello-view.fxml"));
 
+            try {
+                loader.load();
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+
+            Parent root = loader.getRoot();
+            Stage stage = new Stage();
+            stage.setScene(new Scene(root));
+            stage.show();  // Открыть новое окно
+        } else {
+            // Данные аутентификации отсутствуют, пользователь должен зарегестрироваться
+            logger.log(Level.INFO, "Данные аунтецикации не найдены");
+
+            primaryStage.show();
+        }
     }
 
-    private VBox createCenterPane(TextField loginField, Text loginErrorText,
-                                  TextField emailField, Text emailErrorText,
-                                  PasswordField passwordField, Text passwordErrorText,
-                                  PasswordField password2Field, Text password2ErrorText ) {
-        VBox centerPane = new VBox(10);
-        centerPane.setPadding(new Insets(10));
-        centerPane.setAlignment(Pos.CENTER);
 
-        centerPane.getStyleClass().add("form-container");
-
-        centerPane.getChildren().addAll(loginField, loginErrorText,
-                                        emailField, emailErrorText,
-                                        passwordField, passwordErrorText,
-                                        password2Field, password2ErrorText);
-
-        return centerPane;
-    }
-
-
-    private BorderPane createBottomPane(Button registerButton) {
-        BorderPane bottomPane = new BorderPane();
-        bottomPane.setPadding(new Insets(10));
-
-        BorderPane.setMargin(registerButton, new Insets(10));
-
-        registerButton.setMinWidth(300);
-        registerButton.setMinHeight(60);
-        registerButton.setStyle("-fx-background-color: #673AB7; -fx-font-size: 16px; -fx-text-fill: #FFFFFF;");
-
-        bottomPane.setCenter(registerButton);
-
-        return bottomPane;
-    }
-
-    private boolean isValidEmail(String email) {
-        return email.matches("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}");
-    }
 }
 
 
