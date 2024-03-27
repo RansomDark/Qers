@@ -8,11 +8,18 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import java.awt.*;
 import java.net.URL;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class MainApplication extends Application {
 
     @Override
     public void start(Stage primaryStage) throws AWTException {
+        Logger logger = Logger.getLogger(RegistrationForm.class.getName());
+
+        String username = FileUtils.loadCredentials()[0];
+        logger.log(Level.INFO, "Username: " + username);
+
         Button button = new Button("Нажми меня");
 
         StackPane layout = new StackPane();
@@ -26,7 +33,7 @@ public class MainApplication extends Application {
 
         // Создаем иконку для трея
         if (!SystemTray.isSupported()) {
-            System.err.println("System tray feature is not supported");
+            logger.log(Level.WARNING, "Tray not supported");
         }
 
         SystemTray tray = SystemTray.getSystemTray();
@@ -52,7 +59,14 @@ public class MainApplication extends Application {
         open.addActionListener(e -> primaryStage.show());
 
         button.setOnAction(e -> {
-            shutdownComputer();
+            String stateButton = NetworkUtils.getStateButton(username);
+            logger.log(Level.INFO, "stateButton: " + stateButton);
+
+            if (stateButton.contains("User is pressed")) {
+                shutdownComputer();
+            } else {
+                logger.log(Level.INFO, "Не нажата");
+            }
         });
     }
 
