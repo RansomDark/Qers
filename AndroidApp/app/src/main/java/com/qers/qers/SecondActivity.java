@@ -43,9 +43,9 @@ public class SecondActivity extends AppCompatActivity {
         is_pressed = sharedPreferences.getBoolean("is_button_pressed", false);
 
         if (is_pressed) {
-            imageView.setImageResource(R.drawable.button_off);
-        } else {
             imageView.setImageResource(R.drawable.button_on);
+        } else {
+            imageView.setImageResource(R.drawable.button_off);
         }
         logoutButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -62,7 +62,7 @@ public class SecondActivity extends AppCompatActivity {
         });
 
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://5.35.95.143:5000")
+                .baseUrl("http://5.35.88.41:5001")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
@@ -73,9 +73,9 @@ public class SecondActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Log.d("is_pressed = ", Boolean.toString(is_pressed));
                 if (is_pressed) {
-                    imageView.setImageResource(R.drawable.button_on);
-                } else {
                     imageView.setImageResource(R.drawable.button_off);
+                } else {
+                    imageView.setImageResource(R.drawable.button_on);
                 }
 
                 is_pressed = !is_pressed;
