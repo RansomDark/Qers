@@ -1,19 +1,12 @@
 package org.example.desktopapp;
 
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
-
-import javax.imageio.ImageIO;
-import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.net.URL;
 
 public class MainApplication extends Application {
@@ -56,17 +49,27 @@ public class MainApplication extends Application {
 
         primaryStage.show();
 
-        open.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                primaryStage.show();
-            }
+        open.addActionListener(e -> primaryStage.show());
+
+        button.setOnAction(e -> {
+            shutdownComputer();
         });
+    }
+
+    private void shutdownComputer() {
+        try {
+            // Выполняем системный вызов для выключения компьютера
+            Process process = Runtime.getRuntime().exec("shutdown -s -t 0");
+            process.waitFor(); // Ждем завершения процесса
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static void main(String[] args) {
         launch(args);
     }
 }
+
 
 
