@@ -1,0 +1,187 @@
+/* Стили для сообщений */
+.text-danger {
+    color: red;
+    background-color: rgba(255, 0, 0, 0.1);
+    padding: 10px;
+    border-radius: 5px;
+    margin: 10px 0;
+}
+
+.text-success {
+    color: green;
+    background-color: rgba(0, 255, 0, 0.1);
+    padding: 10px;
+    border-radius: 5px;
+    margin: 10px 0;
+}
+
+/* Общие стили */
+body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #6a11cb, #2575fc);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+/* Контейнер для формы */
+.form-container {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+    width: 100%;
+    max-width: 400px;  /* Максимальная ширина формы */
+    text-align: center;
+}
+
+/* Заголовки */
+h2 {
+    margin-bottom: 20px;
+    font-size: 24px;
+}
+
+/* Группы полей */
+.input-group {
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+/* Поля ввода */
+.form-input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 2px solid #ccc;
+    border: none;
+    outline: none;
+    font-size: 16px;
+    color: #333;
+}
+
+/* Кнопка */
+.btn {
+    width: 100%;
+    padding: 10px;
+    background: #9b51e0;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn:hover {
+    background: #7a34c1;
+}
+
+/* Ссылки */
+p {
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+a {
+    color: #ffccff;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Стили для сообщений */
+.flash-messages {
+    margin-bottom: 15px;
+    padding: 10px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.flash-message {
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+.success {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.danger {
+    background-color: #f44336;
+    color: white;
+}
+
+/* Ошибки валидации полей */
+.error-message {
+    color: red;
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+/* Контейнер рубильника */
+.switch-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    margin: 30px 0;
+}
+
+/* Стили для рубильника (больший размер) */
+.lever-box {
+    width: 140px;
+    height: 70px;
+    background: #d32f2f; /* Красный цвет по умолчанию */
+    border-radius: 35px;
+    position: relative;
+    cursor: pointer;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+    transition: background 0.3s;
+}
+
+/* Рукоятка рубильника */
+.lever {
+    width: 60px;
+    height: 60px;
+    background: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 5px;
+    transform: translateY(-50%);
+    transition: left 0.3s, background 0.3s;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* Активное состояние */
+.lever-box.active {
+    background: #4CAF50; /* Зеленый цвет */
+}
+
+.lever-box.active .lever {
+    left: 75px;
+}
+
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 480px) {
+    .form-container {
+        width: 90%;
+        padding: 15px;
+    }
+    h2 {
+        font-size: 20px;
+    }
+    .btn {
+        padding: 12px;
+        font-size: 18px;
+    }
+}
