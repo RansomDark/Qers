@@ -8,7 +8,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class NetworkUtils {
-    private static final String SERVER_URL = "http://5.35.88.41:5001/";
+    private static final String SERVER_URL = "http://127.0.0.1:5001/";
 
 
     public static String sendRegistrationDetails(String login, String email, String password) {
@@ -23,6 +23,53 @@ public class NetworkUtils {
             String jsonInputString = "{"
                     + "\"username\":\"" + login + "\","
                     + "\"email\":\"" + email + "\","
+                    + "\"password\":\"" + password + "\""
+                    + "}";
+
+            try (OutputStream os = connection.getOutputStream()) {
+                byte[] input = jsonInputString.getBytes("utf-8");
+                os.write(input, 0, input.length);
+            }
+
+            int responseCode = connection.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_CREATED) {
+                try (BufferedReader br = new BufferedReader(
+                        new InputStreamReader(connection.getInputStream(), "utf-8"))) {
+                    StringBuilder response = new StringBuilder();
+                    String responseLine;
+                    while ((responseLine = br.readLine()) != null) {
+                        response.append(responseLine.trim());
+                    }
+                    return response.toString();
+                }
+            } else {
+                try (BufferedReader br = new BufferedReader(
+                        new InputStreamReader(connection.getErrorStream(), "utf-8"))) {
+                    StringBuilder response = new StringBuilder();
+                    String responseLine;
+                    while ((responseLine = br.readLine()) != null) {
+                        response.append(responseLine.trim());
+                    }
+                    return response.toString();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public static String sendLoginDetails(String login, String password) {
+        try {
+            URL url = new URL(SERVER_URL + "login");
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setDoOutput(true);
+
+            String jsonInputString = "{"
+                    + "\"username\":\"" + login + "\","
                     + "\"password\":\"" + password + "\""
                     + "}";
 
