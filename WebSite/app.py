@@ -8,7 +8,7 @@ from forms import LoginForm, RegisterForm
 API_URL = "http://127.0.0.1:5001/"  # URL удаленного API
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your_secret_key'
+app.config['SECRET_KEY'] = 'key'
 
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
@@ -99,6 +99,10 @@ def login_required(f):
             return redirect(url_for('login'))  # Перенаправление на login
         return f(*args, **kwargs)
     return decorated_function
+
+@app.route('/', methods=['GET'])
+def start():
+    return redirect(url_for('main'))
 
 @app.route('/main', methods=['GET', 'POST'])
 def main():
