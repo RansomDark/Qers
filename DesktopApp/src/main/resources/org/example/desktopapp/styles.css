@@ -20,14 +20,33 @@
     -fx-spacing: 10;
 }
 
-.button-pressed {
-    -fx-background-color: #5E35B1;
+/* Стиль для кнопки */
+.button {
+    -fx-background-color: #673AB7;
     -fx-font-size: 16px;
     -fx-text-fill: #FFFFFF;
+    -fx-min-width: 300px;
+    -fx-min-height: 60px;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+}
+
+.button:hover {
+    -fx-background-color: #5E35B1;
 }
 
 .button:pressed {
-    -fx-background-color: #5E35B1;
+    -fx-background-color: #512D6D;
+}
+
+.hyperlink {
+    -fx-text-fill: #1E88E5; /* Цвет текста */
+    -fx-font-size: 14px;    /* Размер шрифта */
+    -fx-underline: true;    /* Подчеркивание */
+}
+
+.hyperlink:hover {
+    -fx-text-fill: #1565C0; /* Цвет текста при наведении */
 }
 
 .

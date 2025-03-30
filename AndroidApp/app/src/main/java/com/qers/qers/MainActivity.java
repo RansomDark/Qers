@@ -1,103 +1,138 @@
 package com.qers.qers;
 
-import androidx.appcompat.app.AppCompatActivity;
-
-
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
-import android.widget.TextView;
+import android.widget.ImageView;
+import androidx.appcompat.app.AppCompatActivity;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class MainActivity extends AppCompatActivity {
+public class SecondActivity extends AppCompatActivity {
+    private static final String TAG = "SecondActivity";
+    private static final String API_URL = "http://192.168.0.10:5001/";
 
-    private Button login_button;
-    private EditText login_field, password_field;
-    private TextView errorText;
+    private ImageView imageView;
+    private Button logoutButton;
+    private boolean is_pressed;
     private Context context;
-
-    private AuthService authService;
+    private ApiService apiService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.second_activity);
 
-        login_button = findViewById(R.id.login_button);
-        login_field = findViewById(R.id.login_field);
-        password_field = findViewById(R.id.password_field);
-        errorText = findViewById(R.id.errorText);
+        // Инициализация UI элементов
+        imageView = findViewById(R.id.switches);
+        imageView.setImageResource(R.drawable.button_off);
+        logoutButton = findViewById(R.id.logout_button);
+        context = SecondActivity.this;
 
-        context = MainActivity.this;
-
+        // Получение данных пользователя из SharedPreferences
         SharedPreferences sharedPreferences = getSharedPreferences("user_data", Context.MODE_PRIVATE);
         String username = sharedPreferences.getString("username", null);
+        is_pressed = sharedPreferences.getBoolean("is_button_pressed", false);
 
-        if (username != null) {
-            Intent intent = new Intent(context, SecondActivity.class);
-            startActivity(intent);
-            finish();
+        if (is_pressed) {
+            imageView.setImageResource(R.drawable.button_on);
+        } else {
+            imageView.setImageResource(R.drawable.button_off);
         }
 
+        // Логирование состояния кнопки
+        logToFile("Кнопка включена: " + is_pressed);
+
+        // Настройка кнопки выхода
+        logoutButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                SharedPreferences sharedPreferences = getSharedPreferences("user_data", Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.clear();
+                editor.apply();
+                logToFile("Пользователь вышел из системы");
+
+                Intent intent = new Intent(context, MainActivity.class);
+                startActivity(intent);
+                finish();
+            }
+        });
+
+        // Настройка Retrofit для API запросов
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://5.35.88.41:5001")
+                .baseUrl(API_URL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
-        authService = retrofit.create(AuthService.class);
+        apiService = retrofit.create(ApiService.class);
 
-        login_button.setOnClickListener(new View.OnClickListener() {
+        // Обработчик нажатия на изображение
+        imageView.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
-                String loginValue = login_field.getText().toString();
-                String passwordValue = password_field.getText().toString();
+            public void onClick(View v) {
+                Log.d(TAG, "Текущее состояние кнопки: " + is_pressed);
+                logToFile("Текущее состояние кнопки перед нажатием: " + is_pressed);
 
-                if (!loginValue.isEmpty() && !passwordValue.isEmpty()) {
-                    AuthRequest authRequest = new AuthRequest();
-                    authRequest.setUsername(loginValue);
-                    authRequest.setPassword(passwordValue);
-
-                    // Вызов метода API для авторизации
-                    Call<AuthResponse> call = authService.loginUser(authRequest);
-
-                    call.enqueue(new Callback<AuthResponse>() {
-                        @Override
-                        public void onResponse(Call<AuthResponse> call, Response<AuthResponse> response) {
-                            if (response.isSuccessful()) {
-                                AuthResponse authResponse = response.body();
-
-                                SharedPreferences sharedPreferences = getSharedPreferences("user_data", Context.MODE_PRIVATE);
-                                SharedPreferences.Editor editor = sharedPreferences.edit();
-                                editor.putInt("user_id", authResponse.getId());
-                                editor.putString("email", authResponse.getEmail());
-                                editor.putBoolean("is_button_pressed", authResponse.isPressed());
-                                editor.putString("username", authResponse.getUsername());
-                                editor.apply();
-
-                                Intent intent = new Intent(context, SecondActivity.class);
-                                context.startActivity(intent);
-                                finish();
-                            } else {
-                                errorText.setVisibility(View.VISIBLE);
-                            }
-                        }
-
-                        @Override
-                        public void onFailure(Call<AuthResponse> call, Throwable t) {
-                            t.printStackTrace();
-                            errorText.setVisibility(View.VISIBLE);
-                        }
-                    });
+                // Переключение состояния кнопки
+                if (is_pressed) {
+                    imageView.setImageResource(R.drawable.button_off);
+                } else {
+                    imageView.setImageResource(R.drawable.button_on);
                 }
+                is_pressed = !is_pressed;
+
+                // Сохранение нового состояния
+                SharedPreferences sharedPreferences = getSharedPreferences("user_data", Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putBoolean("is_button_pressed", is_pressed);
+                editor.apply();
+                logToFile("Новое состояние кнопки: " + is_pressed);
+
+                // Отправка запроса на сервер
+                PressRequest pressRequest = new PressRequest();
+                pressRequest.setUsername(username);
+                Call<PressResponse> call = apiService.pressButton(pressRequest);
+
+                call.enqueue(new Callback<PressResponse>() {
+                    @Override
+                    public void onResponse(Call<PressResponse> call, Response<PressResponse> response) {
+                        if (response.isSuccessful()) {
+                            Log.d(TAG, "Успешный запрос: кнопка нажата");
+                            logToFile("Успешный запрос: кнопка нажата пользователем " + username);
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<PressResponse> call, Throwable t) {
+                        Log.e(TAG, "Ошибка запроса", t);
+                        logToFile("Ошибка запроса: " + t.getMessage());
+                        t.printStackTrace();
+                    }
+                });
             }
         });
+    }
+
+    // Метод для логирования в файл
+    private void logToFile(String message) {
+        try {
+            File logFile = new File(getFilesDir(), "app_log.txt");
+            FileWriter writer = new FileWriter(logFile, true);
+            writer.append(System.currentTimeMillis() + ": " + message + "\n");
+            writer.close();
+        } catch (IOException e) {
+            Log.e(TAG, "Ошибка записи в лог-файл", e);
+        }
     }
 }

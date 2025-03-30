@@ -6,6 +6,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import javafx.scene.paint.Color;
@@ -20,13 +21,14 @@ public class RegistrationForm extends Application {
         launch(args);
     }
 
+    private static final Logger logger = LogConfig.getLogger();
+
     @Override
     public void start(Stage primaryStage) {
-        Logger logger = Logger.getLogger(RegistrationForm.class.getName());
 
         String[] credentials = FileUtils.loadCredentials();
 
-        primaryStage.setTitle("Регистрация пользователя");
+        primaryStage.setTitle("Qers");
 
         int fieldWidth = 400;
         int fieldHeight = 50;
@@ -69,12 +71,14 @@ public class RegistrationForm extends Application {
         password2ErrorText.setFill(Color.RED);
         password2ErrorText.setVisible(false);
 
+        Hyperlink loginLink = new Hyperlink("Войти");  // Создаем гиперссылку
+
         BorderPane layout = new BorderPane();
-        layout.setCenter(PaneUtils.createCenterPane(loginField, loginErrorText,
+        layout.setCenter(PaneUtils.createRegisterPane(loginField, loginErrorText,
                                          emailField, emailErrorText,
                                          passwordField, passwordErrorText,
                                          password2Field, password2ErrorText));
-        layout.setBottom(PaneUtils.createBottomPane(registerButton));
+        layout.setBottom(PaneUtils.createBottomPane(registerButton, loginLink));
 
         Scene scene = new Scene(layout, 800, 600);
         scene.getRoot().requestFocus();
@@ -88,12 +92,27 @@ public class RegistrationForm extends Application {
             logger.log(Level.WARNING, "Css not found");
         }
 
+        // Создание иконки
+        primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("/icon.png")));
+
         primaryStage.setScene(scene);
         primaryStage.requestFocus();
         primaryStage.setFullScreen(false);
         primaryStage.setResizable(false);
 
         layout.setOnMouseReleased(event -> layout.requestFocus());
+
+        loginLink.setOnAction(e -> {
+            logger.log(Level.INFO, "Переход к форме регистрации");
+            // Открыть форму регистрации
+
+            primaryStage.close();  // Закрываем окно авторизации
+
+            // Создаем и отображаем окно регистрации
+            LoginForm loginApp = new LoginForm();  // Создаем экземпляр LoginForm
+            Stage loginStage = new Stage();
+            loginApp.start(loginStage);  // Запускаем окно регистрации
+        });
 
         registerButton.setOnAction(e -> {
             logger.log(Level.INFO, "Кнопка регистрации нажата");
@@ -137,7 +156,7 @@ public class RegistrationForm extends Application {
                                 + ", адресом электронной почты: " + email + " успешно зарегистрирован");
 
                         // Сохраняем учетные данные пользователя
-                        FileUtils.saveCredentials(login, password);
+                        FileUtils.saveCredentials(login);
 
                         registerButton.getScene().getWindow().hide();
                         FXMLLoader loader = new FXMLLoader();
@@ -241,8 +260,6 @@ public class RegistrationForm extends Application {
             primaryStage.show();
         }
     }
-
-
 }
 
 

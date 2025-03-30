@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Регистрация</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="form-container">
+        <h2>Регистрация</h2>
+
+        <!-- Блок для вывода сообщений -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="flash-messages">
+                    {% for category, message in messages %}
+                        <li class="flash-message {{ category }}">
+                            {{ message }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" onsubmit="handleFormSubmit(event)">
+            {{ form.hidden_tag() }}
+            
+            <!-- Поле для имени пользователя -->
+            <div class="input-group">
+                {{ form.username.label }}
+                <input type="username" id="username" name="username" class="form-input">
+                <!-- Место для ошибки валидации -->
+                <div id="username-error" class="text-danger" style="display:none;"></div>
+            </div>
+
+            <!-- Поле для email -->
+            <div class="input-group">
+                {{ form.email.label }}
+                <input type="email" id="email" name="email" class="form-input">
+                <!-- Место для ошибки валидации -->
+                <div id="email-error" class="text-danger" style="display:none;"></div>
+            </div>
+
+            <!-- Поле для пароля -->
+            <div class="input-group">
+                {{ form.password.label }}
+                <input type="password" id="password" name="password" class="form-input">
+                <!-- Место для ошибки валидации -->
+                <div id="password-error" class="text-danger" style="display:none;"></div>
+            </div>
+
+            <!-- Поле для подтверждения пароля -->
+            <div class="input-group">
+                {{ form.confirm_password.label }}
+                <input type="password" id="confirm_password" name="confirm_password" class="form-input">
+                <!-- Место для ошибки валидации -->
+                <div id="confirm-password-error" class="text-danger" style="display:none;"></div>
+            </div>
+
+            <button type="submit" class="btn">Зарегистрироваться</button>
+        </form>
+        <p>Уже есть аккаунт? <a href="{{ url_for('login') }}">Войти</a></p>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/register.js') }}" defer></script>
+</body>
+</html>

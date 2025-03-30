@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Вход</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="form-container">
+        <h2>Вход</h2>
+
+        <!-- Блок для вывода сообщений -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="flash-messages">
+                    {% for category, message in messages %}
+                        <li class="flash-message {{ category }}">
+                            {{ message }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" onsubmit="validateLoginForm(event)">
+            {{ form.hidden_tag() }}
+            
+            <!-- Поле для имени пользователя -->
+            <div class="input-group">
+                {{ form.username.label }}
+                <input type="username" id="username" name="username" class="form-input">
+                <div id="username-error" class="text-danger" style="display:none;"></div>
+            </div>
+
+            <!-- Поле для пароля -->
+            <div class="input-group">
+                {{ form.password.label }}
+                <input type="password" id="password" name="password" class="form-input">
+                <div id="password-error" class="text-danger" style="display:none;"></div>
+            </div>
+
+            <button type="submit" class="btn">Войти</button>
+        </form>
+        <p>Нет аккаунта? <a href="{{ url_for('register') }}">Зарегистрироваться</a></p>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/login.js') }}" defer></script>
+</body>
+</html>
