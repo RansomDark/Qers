@@ -6,6 +6,7 @@ import logging
 
 app = Flask(__name__)
 
+# Настройка логирования
 logging.basicConfig(filename='app.log', level=logging.DEBUG)
 
 # Создаем базу данных
@@ -24,24 +25,24 @@ cursor.execute('''
 conn.commit()
 conn.close()
 
-
+# Функция генерации случайного хеша
 def generate_random_hash():
     return secrets.token_hex(15)
 
-
+# Функция хеширования пароля
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
-
+# Функция проверки пароля
 def verify_password(plain_password, hashed_password):
     return hashlib.sha256(plain_password.encode()).hexdigest() == hashed_password
-
 
 @app.route('/get_user_id_by_username', methods=['GET'])
 def get_user_id_by_username():
     requested_username = request.args.get('username')
 
     if not requested_username:
+        app.logger.warning("Username is required")
         return jsonify({'error': 'Username is required'}), 400
 
     with sqlite3.connect('data.db') as conn:
@@ -50,8 +51,10 @@ def get_user_id_by_username():
         result = cursor.fetchone()
 
     if result:
+        app.logger.info(f"User ID for {requested_username} found: {result[0]}")
         return str(result[0])
     else:
+        app.logger.warning(f"User {requested_username} not found")
         return jsonify({'message': 'User not found'}), 404
 
 
@@ -63,6 +66,7 @@ def create_user():
     random_hash = generate_random_hash()
 
     if 'username' not in data or 'password' not in data or 'email' not in data:
+        app.logger.warning("Username, password, and email are required")
         return jsonify({'error': 'Username, password, and email are required'}), 400
 
     username = data['username']
@@ -77,13 +81,15 @@ def create_user():
     cursor.execute('SELECT COUNT(*) FROM users WHERE username = ?', (username,))
     if cursor.fetchone()[0] > 0:
         conn.close()
-        return jsonify({'error': "There is already such a login"}), 400
+        app.logger.error("There is already such a login")
+        return jsonify({'error': "There is already such a login"}), 409
 
     # Проверка существующего пользователя по электронной почте
     cursor.execute('SELECT COUNT(*) FROM users WHERE email = ?', (email,))
     if cursor.fetchone()[0] > 0:
         conn.close()
-        return jsonify({'error': "There is already such an email"}), 400
+        app.logger.error("There is already such an email")
+        return jsonify({'error': "There is already such an email"}), 409
 
     hashed_password = hash_password(password)
     try:
@@ -122,6 +128,7 @@ def get_user(user_id):
             'is_pressed': bool(user[4])
         })
     else:
+        app.logger.warning(f"User {user_id} not found")
         return jsonify({'message': 'User not found'}), 404
 
 
@@ -138,6 +145,7 @@ def update_user(user_id):
 
     if not user:
         conn.close()
+        app.logger.warning(f"User {user_id} not found")
         return jsonify({'error': 'User not found'}), 404
 
     app.logger.info(f"Before update: {user}")
@@ -170,23 +178,18 @@ def update_user(user_id):
     return jsonify({'message': 'User updated successfully'})
 
 
-@app.route('/press/', methods=['POST'])
-def press_button():
+@app.route('/login', methods=['POST'])
+def login():
     data = request.get_json()
-    if 'username' not in data:
-        return jsonify({'error': 'Username is required'}), 400
+    if 'username' not in data or 'password' not in data:
+        app.logger.error("Both username and password are required")
+        return jsonify({'error': 'Both username and password are required'}), 400
 
     username = data['username']
-    is_pressed = get_is_pressed(username)
+    password = data['password']
+    app.logger.info(f"Login attempt for user: {username}")
 
-    conn = sqlite3.connect('data.db')
-    cursor = conn.cursor()
-    cursor.execute('UPDATE users SET is_pressed = ? WHERE username = ?', (not is_pressed, username,))
-    conn.commit()
-    conn.close()
-
-    return jsonify({'message': 'Button pressed successfully'})
-
+    return login_user(username, password)
 
 def login_user(username, password):
     conn = sqlite3.connect('data.db')
@@ -201,31 +204,37 @@ def login_user(username, password):
             'username': user[2],
             'email': user[3],
             'is_pressed': bool(user[4])
-        })
+        }), 200
     else:
-        return jsonify({'message': 'Invalid username or password'}), 401
+        app.logger.error("Invalid username or password")
+        return jsonify({'error': 'Invalid username or password'}), 401
 
-
-@app.route('/login', methods=['POST'])
-def login():
+@app.route('/press', methods=['POST'])
+def press_button():
     data = request.get_json()
-
-    if 'username' not in data or 'password' not in data:
-        return jsonify({'error': 'Both username and password are required'}), 400
+    if 'username' not in data:
+        app.logger.error("Username is required")
+        return jsonify({'error': 'Username is required'}), 400
 
     username = data['username']
-    password = data['password']
+    app.logger.info(f"Received button press request from user: {username}")
 
-    return login_user(username, password)
+    is_pressed = get_is_pressed(username)
+    app.logger.info(f"Current button state for {username}: {is_pressed}")
 
-
-def get_is_pressed(username):
-    with sqlite3.connect('data.db') as conn:
+    try:
+        conn = sqlite3.connect('data.db')
         cursor = conn.cursor()
-        cursor.execute('SELECT is_pressed FROM users WHERE username = ?', (username,))
-        result = cursor.fetchone()
-    return bool(result[0]) if result else None
+        cursor.execute('UPDATE users SET is_pressed = ? WHERE username = ?', (not is_pressed, username,))
+        conn.commit()
+        app.logger.info(f"Button state updated successfully for {username}")
+    except Exception as e:
+        app.logger.error(f"Database error: {e}")
+        return jsonify({'error': 'Database error'}), 500
+    finally:
+        conn.close()
 
+    return jsonify({'message': 'Button pressed successfully'})
 
 @app.route('/check_is_pressed', methods=['GET'])
 def check_is_pressed():
@@ -243,6 +252,12 @@ def check_is_pressed():
     else:
         return jsonify({'message': 'User is not pressed'}), 200
 
+def get_is_pressed(username):
+    with sqlite3.connect('data.db') as conn:
+        cursor = conn.cursor()
+        cursor.execute('SELECT is_pressed FROM users WHERE username = ?', (username,))
+        result = cursor.fetchone()
+    return bool(result[0]) if result else None
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001)
