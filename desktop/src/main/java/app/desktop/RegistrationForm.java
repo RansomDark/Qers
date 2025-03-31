@@ -1,19 +1,23 @@
-package org.example.desktopapp;
+package app.desktop;
 
 import javafx.application.Application;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Hyperlink;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
-import javafx.stage.Stage;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
+import javafx.stage.Stage;
 
-import java.util.logging.*;
-import java.io.*;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 public class RegistrationForm extends Application {
@@ -83,7 +87,7 @@ public class RegistrationForm extends Application {
         Scene scene = new Scene(layout, 800, 600);
         scene.getRoot().requestFocus();
 
-        String cssPath = "/org/example/desktopapp/styles.css";
+        String cssPath = "/app/desktop/styles.css";
         if (getClass().getResource(cssPath) != null) {
             logger.log(Level.INFO, "Css found");
             scene.getStylesheets().add(getClass().getResource(cssPath).toExternalForm());

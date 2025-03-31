@@ -18,7 +18,7 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class SecondActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity {
     private static final String TAG = "SecondActivity";
     private static final String API_URL = "http://192.168.0.10:5001/";
 
@@ -37,7 +37,7 @@ public class SecondActivity extends AppCompatActivity {
         imageView = findViewById(R.id.switches);
         imageView.setImageResource(R.drawable.button_off);
         logoutButton = findViewById(R.id.logout_button);
-        context = SecondActivity.this;
+        context = MainActivity.this;
 
         // Получение данных пользователя из SharedPreferences
         SharedPreferences sharedPreferences = getSharedPreferences("user_data", Context.MODE_PRIVATE);
@@ -63,7 +63,7 @@ public class SecondActivity extends AppCompatActivity {
                 editor.apply();
                 logToFile("Пользователь вышел из системы");
 
-                Intent intent = new Intent(context, MainActivity.class);
+                Intent intent = new Intent(context, RegisterActivity.class);
                 startActivity(intent);
                 finish();
             }

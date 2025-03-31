@@ -20,7 +20,7 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class MainActivity extends AppCompatActivity {
+public class RegisterActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     private static final String API_URL = "http://192.168.0.10:5001/";
 
@@ -40,14 +40,14 @@ public class MainActivity extends AppCompatActivity {
         login_field = findViewById(R.id.login_field);
         password_field = findViewById(R.id.password_field);
         errorText = findViewById(R.id.errorText);
-        context = MainActivity.this;
+        context = RegisterActivity.this;
 
         // Проверка сохраненного пользователя
         SharedPreferences sharedPreferences = getSharedPreferences("user_data", Context.MODE_PRIVATE);
         String username = sharedPreferences.getString("username", null);
         if (username != null) {
             logToFile("Пользователь уже авторизован: " + username);
-            Intent intent = new Intent(context, SecondActivity.class);
+            Intent intent = new Intent(context, MainActivity.class);
             startActivity(intent);
             finish();
             return;
@@ -95,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
                                 logToFile("Успешная авторизация пользователя: " + authResponse.getUsername());
 
                                 // Переход на второй экран
-                                Intent intent = new Intent(context, SecondActivity.class);
+                                Intent intent = new Intent(context, MainActivity.class);
                                 context.startActivity(intent);
                                 finish();
                             } else {

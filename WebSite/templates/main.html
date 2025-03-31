@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Главная</title>
+    <title>Qers</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
 
     <div class="form-container">
-        <h2>Главная</h2>
+        <h2>Заблокировать</h2>
 
         <!-- Блок для вывода сообщений -->
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -27,11 +27,9 @@
 
         <!-- Контейнер рубильника -->
         <div class="switch-container">
-            <span class="switch-label">Выключено</span>
             <div class="lever-box {% if is_pressed %}active{% endif %}" id="toggleLever">
                 <div class="lever"></div>
             </div>
-            <span class="switch-label">Включено</span>
         </div>
 
         <!-- Кнопка выхода -->

@@ -1,12 +1,9 @@
-package org.example.desktopapp;
+package app.desktop;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.Properties;
-import java.util.logging.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class FileUtils {
     private static final String CREDENTIALS_FILE = "credentials.properties";

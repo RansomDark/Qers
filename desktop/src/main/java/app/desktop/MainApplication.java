@@ -1,4 +1,4 @@
-package org.example.desktopapp;
+package app.desktop;
 
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -44,7 +44,7 @@ public class MainApplication extends Application {
         layout.getChildren().add(logoutButton);
         Scene scene = new Scene(layout, 300, 300);
 
-        String cssPath = "/org/example/desktopapp/styles.css";
+        String cssPath = "/app/desktop/styles.css";
         if (getClass().getResource(cssPath) != null) {
             logger.log(Level.INFO, "Css found");
             scene.getStylesheets().add(getClass().getResource(cssPath).toExternalForm());

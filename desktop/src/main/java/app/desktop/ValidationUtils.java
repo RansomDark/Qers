@@ -1,4 +1,4 @@
-package org.example.desktopapp;
+package app.desktop;
 
 public class ValidationUtils {
     public static String validatePassword(String password) {
