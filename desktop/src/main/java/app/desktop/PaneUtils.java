@@ -1,4 +1,4 @@
-package org.example.desktopapp;
+package app.desktop;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
