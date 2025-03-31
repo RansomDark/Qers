@@ -5,3 +5,15 @@ Qers - средство защиты информации при утере ил
 * AndroidApp - код мобильного приложения
 * desktop - код настольного приложения
 * WebSite - код сайта
+
+# Download
+
+[Releases](https://github.com/RansomDark/Qers/releases)
+QersInstaller.exe - установщик для windows, разрешаем скачивание
+Qers.apk - установщик для android
+
+# Requirements
+  
+* Windows_x64 10 или более
+* Java 17 или более
+* Andorid 7.0 или более
