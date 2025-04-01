@@ -24,19 +24,21 @@ public class MainApplication extends Application {
     private SystemTray tray;
     private static final String iconImageLoc = "/icon.png";
 
+    private volatile boolean monitoringActive = true;
+
     @Override
     public void start(Stage primaryStage) throws AWTException {
         this.primaryStage = primaryStage;
         String[] credentials = FileUtils.loadCredentials();
 
         if (credentials[0] == null) {
-            logger.log(Level.INFO, "Данные аутентификации не найдены. Открываем окно регистрации...");
             RegistrationForm registrationForm = new RegistrationForm();
             registrationForm.start(new Stage());
             return;
         }
 
-        username = credentials[0];
+        username = credentials[0];            logger.log(Level.INFO, "Данные аутентификации не найдены. Открываем окно регистрации...");
+
 
         Button logoutButton = new Button("Выйти");
         logoutButton.getStyleClass().add("button");
@@ -124,6 +126,7 @@ public class MainApplication extends Application {
     }
 
     private void handleLogout() {
+        stopMonitoring();
         FileUtils.removeCredentials();
         tray.remove(trayIcon);
         logger.log(Level.INFO, "Трей-иконка удалена.");
@@ -142,12 +145,13 @@ public class MainApplication extends Application {
 
 
     private void startMonitoring() {
+        monitoringActive = true;
         Thread thread = new Thread(() -> {
-            while (true) {
+            while (monitoringActive) {
                 String status = NetworkUtils.getStateButton(username);
                 if (status.contains("User is pressed")) {
                     logger.log(Level.INFO, "Компьютер выключен");
-                    // shutdownComputer();
+                    shutdownComputer();
                 } else {
                     logger.log(Level.INFO, "Компьютер включен");
                 }
@@ -162,6 +166,10 @@ public class MainApplication extends Application {
         });
         thread.setDaemon(true);
         thread.start();
+    }
+
+    private void stopMonitoring() {
+        monitoringActive = false; // Останавливаем мониторинг
     }
 
     private void shutdownComputer() {
