@@ -1,6 +1,6 @@
 import requests
-from flask import Flask, render_template, redirect, url_for, flash, session, request, jsonify
-from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from flask import Flask, render_template, redirect, url_for, flash, session, request, jsonify, send_from_directory
+from flask_login import LoginManager, UserMixin
 from functools import wraps
 
 from forms import LoginForm, RegisterForm
@@ -20,11 +20,23 @@ class User(UserMixin):
         self.email = email
         self.is_pressed = is_pressed
 
+# Декоратор для проверки аутентификации
+def session_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        # Проверяем, есть ли в сессии данные, указывающие на авторизацию пользователя
+        if 'username' not in session:
+            flash("Необходима авторизация.", "warning")
+            return redirect(url_for('login'))  # Перенаправляем на страницу логина, если пользователь не авторизован
+        return f(*args, **kwargs)  # Если авторизация есть, продолжаем выполнение функции
+    return decorated_function
+
 @login_manager.user_loader
 def load_user(user_id):
     response = requests.get(f"{API_URL}/users/{user_id}")
     if response.status_code == 200:
         user_data = response.json()
+        session['token'] = user_data['token']
         return User(user_data["id"], user_data["username"], user_data["email"])
     return None
 
@@ -39,7 +51,7 @@ def register():
         }
 
         try:
-            response = requests.post(f"{API_URL}/user", json=data, timeout=5)  # Таймаут в 5 секунд
+            response = requests.post(f"{API_URL}/register", json=data, timeout=5)  # Таймаут в 5 секунд
             if response.status_code == 201:
                 
                 return redirect(url_for('login'))
@@ -72,44 +84,27 @@ def login():
 
             if response.status_code == 200:
                 user_data = response.json()  # Получаем данные пользователя
-                session['id'] = user_data['id']  # Сохраняем в сессию
-                session['username'] = user_data['username']
-                session['is_pressed'] = user_data['is_pressed']
-
+                session['user_id'] = user_data['user_id']  # Сохраняем в сессию
+                session['token'] = user_data['token']
+                session['username'] = form.username.data
                 return redirect(url_for('main'))  # Перенаправление в профиль
-
             elif response.status_code == 401:
                 error_message = response.json().get('error')
                 flash(error_message, "danger")
-
             else:
                 flash("Ошибка входа. Попробуйте позже.", "danger")
-
         except requests.exceptions.RequestException:
             flash("Ошибка соединения с сервером. Попробуйте позже.", "danger")
     
     return render_template('login.html', form=form)
-
-# Декоратор для проверки аутентификации
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'id' not in session:  # Если пользователь не авторизован
-            flash("Вам нужно войти в систему.", "warning")
-            return redirect(url_for('login'))  # Перенаправление на login
-        return f(*args, **kwargs)
-    return decorated_function
 
 @app.route('/', methods=['GET'])
 def start():
     return redirect(url_for('main'))
 
 @app.route('/main', methods=['GET', 'POST'])
+@session_required
 def main():
-    if 'username' not in session:
-        flash("Вам нужно войти в систему.", "warning")
-        return redirect(url_for('login'))  # Если не авторизован, редирект на логин
-    
     if request.method == 'POST':
         # Извлекаем данные, полученные от клиента
         data = request.get_json()
@@ -118,7 +113,10 @@ def main():
         if is_pressed is not None:
             # Отправляем запрос на удалённый API
             try:
-                response = requests.post(f"{API_URL}/press", json={'username': session['username']})
+                headers = {
+                    'Authorization': f'Bearer {session["token"]}'
+                }
+                response = requests.post(f"{API_URL}/press", json={'username': session['username']}, headers=headers)
                 
                 if response.status_code == 200:
                     # Если запрос прошел успешно, сохраняем состояние в сессии
@@ -146,6 +144,10 @@ def logout():
     session.clear()  # Очистка сессии
     flash("Вы вышли из системы.", "info")
     return redirect(url_for('login'))  # Перенаправление на login
+
+@app.route('/download-agreement')
+def download_agreement():
+    return send_from_directory('static/docs', 'user_agreement_program.pdf', as_attachment=True)
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -1,4 +1,4 @@
-flask~=3.0.2
 requests~=2.31.0
+Flask~=3.0.3
 Flask-Login~=0.6.3
-wtforms~=3.2.1
+WTForms~=3.2.1
