@@ -57,9 +57,12 @@
                 <div id="confirm-password-error" class="text-danger" style="display:none;"></div>
             </div>
 
-            <button type="submit" class="btn">Зарегистрироваться</button>
+            <button type="submit" class="btn" id="submit-button">Зарегистрироваться</button>
         </form>
         <p>Уже есть аккаунт? <a href="{{ url_for('login') }}">Войти</a></p>
+        <input type="checkbox" id="terms" name="terms" onchange="toggleSubmitButton()">
+        <label for="terms">Я принимаю условия <a href="{{ url_for('static', filename='docs/user_agreement.pdf') }}" download>пользовательского соглашения</a></label>
+        <div id="terms-error" class="text-danger" style="display:none;"></div>
     </div>
 
     <script src="{{ url_for('static', filename='js/register.js') }}" defer></script>

@@ -1,3 +1,7 @@
+document.addEventListener('DOMContentLoaded', () => {
+    toggleSubmitButton();
+});
+
 function clearErrors() {
     document.querySelectorAll('.error-message').forEach(error => {
         error.textContent = '';
@@ -7,7 +11,7 @@ function clearErrors() {
 
 clearErrors(); // Очистка всех ошибок перед проверкой
 
-// Функция для проверки email с использованием регулярного выражения
+// Функция для проверки email
 function validateEmail() {
     const emailInput = document.getElementById('email');
     const emailValue = emailInput.value;
@@ -96,6 +100,13 @@ function validateConfirmPassword() {
     // Если пароли совпадают, скрываем ошибку
     confirmPasswordError.style.display = 'none';
     return true;
+}
+
+function toggleSubmitButton() {
+    const termsCheckbox = document.getElementById('terms');
+    const submitButton = document.getElementById('submit-button');
+
+    submitButton.disabled = !termsCheckbox.checked;
 }
 
 // Функция для обработки отправки формы
