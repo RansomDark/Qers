@@ -3,34 +3,20 @@ package com.qers.qers;
 import com.google.gson.annotations.SerializedName;
 
 public class AuthResponse {
-    @SerializedName("id")
-    private int id;
-
-    @SerializedName("username")
-    private String username;
-
-    @SerializedName("email")
-    private String email;
+    @SerializedName("user_id")
+    private int user_id;
 
     @SerializedName("is_pressed")
-    private boolean isPressed;
+    private int is_pressed;
 
-    @SerializedName("message")
-    private String message;
+    @SerializedName("token")
+    private String token;
 
     public int getId() {
-        return id;
+        return user_id;
     }
 
-    public String getUsername() {
-        return username;
-    }
+    public String getToken() { return token; }
 
-    public String getEmail() {
-        return email;
-    }
-
-    public boolean isPressed() {
-        return isPressed;
-    }
+    public int checkPressed() { return is_pressed; }
 }

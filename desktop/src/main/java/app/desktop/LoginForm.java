@@ -17,6 +17,8 @@ import java.awt.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.json.JSONObject;
+
 
 public class LoginForm extends Application {
     public static void main(String[] args) {
@@ -111,12 +113,15 @@ public class LoginForm extends Application {
                 if (loginResponse != null) {
                     if (loginResponse.contains("id")) {
                         logger.log(Level.INFO, "Пользователь с логином: " + login
-                                + "успешно авторизован");
+                                + " успешно авторизован");
+
+                        JSONObject json = new JSONObject(loginResponse);
+                        String token = json.getString("token");
 
                         // Сохраняем учетные данные пользователя
-                        FileUtils.saveCredentials(login);
+                        FileUtils.saveCredentials(login, token);
 
-                        primaryStage.close();  // Закрываем окно авторизации
+                        primaryStage.close();  // Закрываем текущее окно
 
                         // Создаем и отображаем главное окно
                         MainApplication mainApp = new MainApplication();  // Создаем экземпляр MainApplication
@@ -165,7 +170,7 @@ public class LoginForm extends Application {
         loginButton.setOnMouseReleased(e -> loginButton.setStyle("-fx-background-color: #673AB7; " +
                 "-fx-font-size: 16px; -fx-text-fill: #FFFFFF;"));
 
-        if (credentials[0] != null) {
+        if (credentials[0] != null && credentials[1] != null) {
             // Данные аутентификации найдены, выполняем автоматическую аутентификацию
             logger.log(Level.INFO, "Данные аунтецикации найдены");
 

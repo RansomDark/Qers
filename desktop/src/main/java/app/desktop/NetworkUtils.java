@@ -10,12 +10,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class NetworkUtils {
-    private static final String SERVER_URL = "http://62.217.176.242:5001/";
+    private static final String SERVER_URL = "http://127.0.0.1:5001/";  // http://62.217.176.242:5001/
 
 
     public static String sendRegistrationDetails(String login, String email, String password) {
         try {
-            URL url = new URL(SERVER_URL + "user");
+            URL url = new URL(SERVER_URL + "register");
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
             connection.setRequestMethod("POST");
@@ -108,13 +108,15 @@ public class NetworkUtils {
         }
     }
 
-    public static String getStateButton(String login) {
+    public static String getStateButton(String login, String token) {
         Logger logger = Logger.getLogger(RegistrationForm.class.getName());
         try {
             String encodedLogin = URLEncoder.encode(login, "UTF-8");
-            URL url = new URL(SERVER_URL + "check_is_pressed" + "?" + "username=" + encodedLogin);
+            URL url = new URL(SERVER_URL + "is_pressed" + "?" + "username=" + encodedLogin);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
+
+            connection.setRequestProperty("Authorization", "Bearer " + token);
 
             int responseCode = connection.getResponseCode();
             logger.log(Level.INFO, "Код ответа сервера: " + responseCode);
@@ -122,13 +124,17 @@ public class NetworkUtils {
             if (responseCode == HttpURLConnection.HTTP_OK) {
                 try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
                     String response = in.readLine();
-                    // Проверяем ответ
-
-                    logger.log(Level.INFO, "Ответ сервера: " + response);
+                    logger.log(Level.INFO, "Ответ сервера: " + response); // Проверяем ответ
+                    return response;
+                }
+            } else {
+                try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getErrorStream()))) {
+                    String response = in.readLine();
+                    logger.log(Level.WARNING, "Ошибка от сервера: " + response);
                     return response;
                 }
             }
-            return String.valueOf(responseCode);
+
         } catch (Exception e) {
             e.printStackTrace();
             return null;

@@ -2,8 +2,6 @@ package app.desktop;
 
 import javafx.application.Application;
 import javafx.css.PseudoClass;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Hyperlink;
@@ -15,7 +13,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
-import java.io.IOException;
+import java.awt.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -31,6 +29,18 @@ public class RegistrationForm extends Application {
     public void start(Stage primaryStage) {
 
         String[] credentials = FileUtils.loadCredentials();
+
+        if (credentials[0] != null && credentials[1] != null) {
+            logger.log(Level.INFO, "Данные аутентификации найдены. Открываем главное окно ...");
+            MainApplication mainApp = new MainApplication();  // Создаем экземпляр MainApplication
+            Stage mainStage = new Stage();
+            try {
+                mainApp.start(mainStage);  // Запускаем главную программу
+            } catch (AWTException ex) {
+                throw new RuntimeException(ex);
+            }
+            return;
+        }
 
         primaryStage.setTitle("Qers");
 
@@ -104,18 +114,20 @@ public class RegistrationForm extends Application {
         primaryStage.setFullScreen(false);
         primaryStage.setResizable(false);
 
+        primaryStage.show();
+
         layout.setOnMouseReleased(event -> layout.requestFocus());
 
         loginLink.setOnAction(e -> {
-            logger.log(Level.INFO, "Переход к форме регистрации");
-            // Открыть форму регистрации
+            logger.log(Level.INFO, "Переход к форме авторизации");
+            // Открыть форму авторизации
 
-            primaryStage.close();  // Закрываем окно авторизации
+            primaryStage.close();  // Закрываем текущее окно
 
-            // Создаем и отображаем окно регистрации
+            // Создаем и отображаем окно авторизации
             LoginForm loginApp = new LoginForm();  // Создаем экземпляр LoginForm
             Stage loginStage = new Stage();
-            loginApp.start(loginStage);  // Запускаем окно регистрации
+            loginApp.start(loginStage);  // Запускаем окно авторизации
         });
 
         registerButton.setOnAction(e -> {
@@ -153,37 +165,28 @@ public class RegistrationForm extends Application {
                 }
 
                 String registrationResponse = NetworkUtils.sendRegistrationDetails(login, email, password);
+                logger.log(Level.INFO, "Ответ от сервера: ", registrationResponse);
 
                 if (registrationResponse != null) {
-                    if (registrationResponse.contains("User created successfully")) {
+                    if (registrationResponse.contains("User registered successfully")) {
                         logger.log(Level.INFO, "Пользователь с логином: " + login
                                 + ", адресом электронной почты: " + email + " успешно зарегистрирован");
 
-                        // Сохраняем учетные данные пользователя
-                        FileUtils.saveCredentials(login);
+                        primaryStage.close();  // Закрываем текущее окно
 
-                        registerButton.getScene().getWindow().hide();
-                        FXMLLoader loader = new FXMLLoader();
-                        loader.setLocation(getClass().getResource("/org/example/desktopapp/hello-view.fxml"));
+                        // Создаем и отображаем окно авторизации
+                        LoginForm loginApp = new LoginForm();  // Создаем экземпляр LoginForm
+                        Stage loginStage = new Stage();
+                        loginApp.start(loginStage);  // Запускаем окно авторизации
 
-                        try {
-                            loader.load();
-                        } catch (IOException ex) {
-                            throw new RuntimeException(ex);
-                        }
 
-                        Parent root = loader.getRoot();
-                        Stage stage = new Stage();
-                        stage.setScene(new Scene(root));
-                        stage.showAndWait();
-
-                    } else if (registrationResponse.contains("There is already such a login")) {
+                    } else if (registrationResponse.contains("Username already exists")) {
                         logger.log(Level.INFO, "Такой логин уже существует");
 
                         loginErrorText.setText("Такой логин уже существует");
                         loginErrorText.setVisible(true);
                         loginField.pseudoClassStateChanged(PseudoClass.getPseudoClass("invalid"), true);
-                    } else if (registrationResponse.contains("There is already such an email")) {
+                    } else if (registrationResponse.contains("Email already registered")) {
                         logger.log(Level.INFO, "Такая почта уже существует");
 
                         emailErrorText.setText("Такой адрес электронной почты уже используется");
@@ -225,7 +228,7 @@ public class RegistrationForm extends Application {
             passwordField.pseudoClassStateChanged(PseudoClass.getPseudoClass("invalid"), false);
         });
 
-        passwordField.textProperty().addListener((observable, oldValue, newValue) -> {
+        password2Field.textProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue.length() > 24) {
                 passwordField.setText(oldValue);
             }
@@ -237,32 +240,6 @@ public class RegistrationForm extends Application {
                 "-fx-font-size: 16px; -fx-text-fill: #FFFFFF;"));
         registerButton.setOnMouseReleased(e -> registerButton.setStyle("-fx-background-color: #673AB7; " +
                 "-fx-font-size: 16px; -fx-text-fill: #FFFFFF;"));
-
-        if (credentials[0] != null && credentials[1] != null) {
-            // Данные аутентификации найдены, выполняем автоматическую аутентификацию
-            logger.log(Level.INFO, "Данные аунтецикации найдены");
-
-            primaryStage.close();
-
-            FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(getClass().getResource("/org/example/desktopapp/hello-view.fxml"));
-
-            try {
-                loader.load();
-            } catch (IOException ex) {
-                throw new RuntimeException(ex);
-            }
-
-            Parent root = loader.getRoot();
-            Stage stage = new Stage();
-            stage.setScene(new Scene(root));
-            stage.show();  // Открыть новое окно
-        } else {
-            // Данные аутентификации отсутствуют, пользователь должен зарегестрироваться
-            logger.log(Level.INFO, "Данные аунтецикации не найдены");
-
-            primaryStage.show();
-        }
     }
 }
 

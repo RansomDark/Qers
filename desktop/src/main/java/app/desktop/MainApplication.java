@@ -19,6 +19,7 @@ import java.util.logging.Logger;
 public class MainApplication extends Application {
     private static final Logger logger = LogConfig.getLogger();
     private String username;
+    private String token;
     private Stage primaryStage;
     private TrayIcon trayIcon;
     private SystemTray tray;
@@ -31,13 +32,15 @@ public class MainApplication extends Application {
         this.primaryStage = primaryStage;
         String[] credentials = FileUtils.loadCredentials();
 
-        if (credentials[0] == null) {
+        if (credentials[0] == null && credentials[1] == null) {
+            logger.log(Level.INFO, "Данные аутентификации не найдены. Открываем окно регистрации...");
             RegistrationForm registrationForm = new RegistrationForm();
             registrationForm.start(new Stage());
             return;
         }
 
-        username = credentials[0];            logger.log(Level.INFO, "Данные аутентификации не найдены. Открываем окно регистрации...");
+        username = credentials[0];
+        token = credentials[1];
 
 
         Button logoutButton = new Button("Выйти");
@@ -148,7 +151,7 @@ public class MainApplication extends Application {
         monitoringActive = true;
         Thread thread = new Thread(() -> {
             while (monitoringActive) {
-                String status = NetworkUtils.getStateButton(username);
+                String status = NetworkUtils.getStateButton(username, token);
                 if (status.contains("User is pressed")) {
                     logger.log(Level.INFO, "Компьютер выключен");
                     shutdownComputer();
