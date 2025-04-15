@@ -10,7 +10,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class NetworkUtils {
-    private static final String SERVER_URL = "http://127.0.0.1:5001/";
+    private static final String SERVER_URL = "http://62.217.176.242:5001/";
 
 
     public static String sendRegistrationDetails(String login, String email, String password) {

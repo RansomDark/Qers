@@ -20,9 +20,9 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class RegisterActivity extends AppCompatActivity {
+public class LoginActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
-    private static final String API_URL = "http://192.168.0.10:5001/";
+    private static final String API_URL = "http://62.217.176.242:5001/";
 
     private Button login_button;
     private EditText login_field, password_field;
@@ -40,7 +40,7 @@ public class RegisterActivity extends AppCompatActivity {
         login_field = findViewById(R.id.login_field);
         password_field = findViewById(R.id.password_field);
         errorText = findViewById(R.id.errorText);
-        context = RegisterActivity.this;
+        context = LoginActivity.this;
 
         // Проверка сохраненного пользователя
         SharedPreferences sharedPreferences = getSharedPreferences("user_data", Context.MODE_PRIVATE);

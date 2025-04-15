@@ -20,7 +20,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "SecondActivity";
-    private static final String API_URL = "http://192.168.0.10:5001/";
+    private static final String API_URL = "http://62.217.176.242:5001/";
 
     private ImageView imageView;
     private Button logoutButton;
@@ -63,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
                 editor.apply();
                 logToFile("Пользователь вышел из системы");
 
-                Intent intent = new Intent(context, RegisterActivity.class);
+                Intent intent = new Intent(context, LoginActivity.class);
                 startActivity(intent);
                 finish();
             }
@@ -77,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
 
         apiService = retrofit.create(ApiService.class);
 
-        // Обработчик нажатия на изображение
+        // Обработчик нажатия на
         imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

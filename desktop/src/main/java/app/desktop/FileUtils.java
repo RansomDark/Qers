@@ -1,17 +1,30 @@
 package app.desktop;
 
 import java.io.*;
+import java.nio.file.Paths;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class FileUtils {
-    private static final String CREDENTIALS_FILE = "credentials.properties";
     private static final Logger logger = LogConfig.getLogger();
+
+    private static final String APP_DATA_DIR = System.getenv("APPDATA");
+    private static final String CREDENTIALS_FILE  = Paths.get(APP_DATA_DIR, "Qers", "credentials.properties").toString();
+
+    static {
+        try {
+            // Создаем директорию, если она не существует
+            java.nio.file.Files.createDirectories(Paths.get(APP_DATA_DIR, "Qers"));
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "Ошибка при создании директории конфигурации", e);
+        }
+    }
+
 
     public static String[] loadCredentials() {
         String[] credentials = new String[1];
-        try (InputStream input = new FileInputStream(CREDENTIALS_FILE)) {
+        try (InputStream input = new FileInputStream(CREDENTIALS_FILE )) {
             Properties properties = new Properties();
             properties.load(input);
             credentials[0] = properties.getProperty("username");
