@@ -7,12 +7,14 @@ import javafx.scene.control.Button;
 import javafx.scene.layout.StackPane;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
+import org.json.JSONObject;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -152,11 +154,21 @@ public class MainApplication extends Application {
         Thread thread = new Thread(() -> {
             while (monitoringActive) {
                 String status = NetworkUtils.getStateButton(username, token);
-                if (status.contains("User is pressed")) {
-                    logger.log(Level.INFO, "Компьютер выключен");
+                if (status.contains("true")) {
+                    FileUtils.saveCredentials(username, token, 1);
                     shutdownComputer();
-                } else {
+                    logger.log(Level.INFO, "Компьютер выключен");
+                } else if (status.contains("false")) {
+                    FileUtils.saveCredentials(username, token, 0);
                     logger.log(Level.INFO, "Компьютер включен");
+                } else {
+                    String[] credentials = FileUtils.loadCredentials();
+                    if (credentials[2].contains("1")) {
+                        shutdownComputer();
+                        logger.log(Level.INFO, "Компьютер выключен по данным из файла");
+                    } else {
+                        logger.log(Level.INFO, "Компьютер включен по данным из файла");
+                    }
                 }
 
                 try {
@@ -178,7 +190,7 @@ public class MainApplication extends Application {
     private void shutdownComputer() {
         try {
             logger.log(Level.INFO, "Выключение компьютера...");
-            Process process = Runtime.getRuntime().exec("shutdown -s -t 0");
+            Process process = Runtime.getRuntime().exec("rundll32.exe user32.dll,LockWorkStation");
             process.waitFor();
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Ошибка при выключении компьютера", e);

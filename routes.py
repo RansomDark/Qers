@@ -12,9 +12,22 @@ logging.basicConfig(filename='app.log', level=logging.DEBUG,
 # Создание Blueprint для организации маршрутов
 routes = Blueprint('routes', __name__)
 
+
 # Регистрация нового пользователя
 @routes.route('/register', methods=['POST'])
 def register():
+    """
+    @brief Регистрация нового пользователя.
+
+    Принимает данные пользователя (username, password, email), проверяет их на наличие
+    и создает нового пользователя в базе данных.
+
+    @param username Строка, имя пользователя.
+    @param password Строка, пароль пользователя.
+    @param email Строка, email пользователя.
+
+    @return JSON-ответ с сообщением об успехе или ошибке.
+    """
     data = request.get_json()
     username = data.get('username')
     password = data.get('password')
@@ -40,7 +53,7 @@ def register():
             logging.warning(f"Email уже зарегистрирован: {email}")
             return jsonify({'error': 'Email already registered'}), 409
 
-        cursor.execute('''
+        cursor.execute(''' 
             INSERT INTO users (password_hash, username, email, is_pressed, hash)
             VALUES (?, ?, ?, ?, ?)
         ''', (hashed, username, email, 0, user_hash))
@@ -49,9 +62,21 @@ def register():
     logging.info(f"User registered successfully: {username}")
     return jsonify({'message': 'User registered successfully'}), 201
 
+
 # Вход пользователя
 @routes.route('/login', methods=['POST'])
 def login():
+    """
+    @brief Вход пользователя в систему.
+
+    Принимает данные пользователя для входа (username, password), проверяет их
+    и возвращает токен, если данные верные.
+
+    @param username Строка, имя пользователя.
+    @param password Строка, пароль пользователя.
+
+    @return JSON-ответ с токеном пользователя или ошибкой.
+    """
     data = request.get_json()
     username = data.get('username')
     password = data.get('password')
@@ -62,7 +87,6 @@ def login():
         return jsonify({'error': 'Username and password are required'}), 400
 
     user = get_user_by_username(username)
-    print(user)
 
     # Проверка пароля, генерация токенов
     if user and verify_password(password, user[1]):
@@ -77,10 +101,20 @@ def login():
     logging.warning(f"Error login: Invalid credentials for {username}")
     return jsonify({'error': 'Invalid credentials'}), 401
 
+
 # Получение информации о пользователе по ID
 @routes.route('/user/<int:user_id>', methods=['GET'])
 @token_required
 def get_user(user_id):
+    """
+    @brief Получение информации о пользователе по его ID.
+
+    Возвращает данные пользователя, такие как username, email и состояние кнопки.
+
+    @param user_id Целое число, ID пользователя.
+
+    @return JSON-ответ с данными пользователя или ошибкой, если пользователь не найден.
+    """
     user = get_user_by_id(user_id)
     if not user:
         logging.warning(f"User {user_id} not found")
@@ -94,10 +128,24 @@ def get_user(user_id):
         'is_pressed': bool(user[4])
     })
 
+
 # Обновление информации пользователя
 @routes.route('/user/<int:user_id>', methods=['PUT'])
 @token_required
 def update_user(user_id):
+    """
+    @brief Обновление информации о пользователе.
+
+    Принимает данные для обновления пользователя и обновляет его в базе данных.
+
+    @param user_id Целое число, ID пользователя.
+    @param username Строка, новое имя пользователя (опционально).
+    @param email Строка, новый email пользователя (опционально).
+    @param password Строка, новый пароль (опционально).
+    @param is_pressed Целое число, новое состояние кнопки (0 или 1).
+
+    @return JSON-ответ с результатом обновления или ошибкой.
+    """
     data = request.get_json()
     user = get_user_by_id(user_id)
     if not user:
@@ -126,10 +174,20 @@ def update_user(user_id):
     logging.info(f"User data update success {user_id}")
     return jsonify({'message': 'User updated'})
 
+
 # Переключение состояния кнопки пользователя (is_pressed)
 @routes.route('/press', methods=['POST'])
 @token_required
 def toggle_button():
+    """
+    @brief Переключение состояния кнопки пользователя.
+
+    Изменяет состояние кнопки пользователя с 0 на 1 или наоборот.
+
+    @param username Строка, имя пользователя.
+
+    @return JSON-ответ с новым состоянием кнопки пользователя.
+    """
     data = request.get_json()
     username = data.get('username')
     user = get_user_by_username(username)
@@ -148,10 +206,20 @@ def toggle_button():
     logging.info(f"Button {username} in state: {bool(new_state)}")
     return jsonify({'message': 'Button toggled', 'new_state': bool(new_state)})
 
+
 # Проверка текущего состояния кнопки пользователя
 @routes.route('/is_pressed', methods=['GET'])
 @token_required
 def check_pressed():
+    """
+    @brief Проверка текущего состояния кнопки пользователя.
+
+    Возвращает текущее состояние кнопки пользователя.
+
+    @param username Строка, имя пользователя.
+
+    @return JSON-ответ с состоянием кнопки пользователя.
+    """
     username = request.args.get('username')
     user = get_user_by_username(username)
     if not user:

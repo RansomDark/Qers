@@ -24,7 +24,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
-    private static final String API_URL = "http://192.168.0.12:5001/";
+    private static final String API_URL = "http://62.217.176.242:5001/";
 
     private ImageView imageView;
     private Button logoutButton;

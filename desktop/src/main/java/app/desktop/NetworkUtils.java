@@ -1,16 +1,15 @@
 package app.desktop;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLEncoder;
+import java.net.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class NetworkUtils {
-    private static final String SERVER_URL = "http://127.0.0.1:5001/";  // http://62.217.176.242:5001/
+    private static final String SERVER_URL = "http://62.217.176.242:5001/";
 
 
     public static String sendRegistrationDetails(String login, String email, String password) {
@@ -115,8 +114,10 @@ public class NetworkUtils {
             URL url = new URL(SERVER_URL + "is_pressed" + "?" + "username=" + encodedLogin);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
-
             connection.setRequestProperty("Authorization", "Bearer " + token);
+
+            connection.setConnectTimeout(3500);
+            connection.setReadTimeout(5000);
 
             int responseCode = connection.getResponseCode();
             logger.log(Level.INFO, "Код ответа сервера: " + responseCode);
@@ -135,9 +136,21 @@ public class NetworkUtils {
                 }
             }
 
+        } catch (UnknownHostException e) {
+            logger.log(Level.SEVERE, "Сервер недоступен (нет интернета или неверный домен)");
+            return "NETWORK_ERROR: Сервер недоступен";
+        } catch (SocketTimeoutException e) {
+            logger.log(Level.SEVERE, "Таймаут соединения с сервером");
+            return "NETWORK_ERROR: Таймаут соединения";
+        } catch (MalformedURLException e) {
+            logger.log(Level.SEVERE, "Неверный URL: " + SERVER_URL);
+            return "INTERNAL_ERROR: Неверный URL";
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "Ошибка ввода-вывода: " + e.getMessage());
+            return "NETWORK_ERROR: Ошибка подключения";
         } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+            logger.log(Level.SEVERE, "Неизвестная ошибка: " + e.getMessage());
+            return "INTERNAL_ERROR: " + e.getMessage();
         }
     }
 }

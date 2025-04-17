@@ -5,6 +5,7 @@ def get_db_connection():
     return sqlite3.connect(Config.DB_PATH)
 
 def init_db():
+    # Создание базы данных, если ее нет
     with get_db_connection() as conn:
         cursor = conn.cursor()
         cursor.execute('''

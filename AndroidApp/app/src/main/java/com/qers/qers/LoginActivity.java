@@ -25,7 +25,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class LoginActivity extends AppCompatActivity {
     private static final String TAG = "LoginActivity";
-    private static final String API_URL = "http://192.168.0.12:5001/"; // Замените на ваш серверный URL
+    private static final String API_URL = "http://62.217.176.242:5001/"; // Замените на ваш серверный URL
 
     private Button login_button;
     private EditText login_field, password_field;

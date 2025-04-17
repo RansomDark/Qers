@@ -117,9 +117,10 @@ public class LoginForm extends Application {
 
                         JSONObject json = new JSONObject(loginResponse);
                         String token = json.getString("token");
+                        int is_pressed = json.getInt("is_pressed");
 
                         // Сохраняем учетные данные пользователя
-                        FileUtils.saveCredentials(login, token);
+                        FileUtils.saveCredentials(login, token, is_pressed);
 
                         primaryStage.close();  // Закрываем текущее окно
 

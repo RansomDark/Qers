@@ -23,23 +23,25 @@ public class FileUtils {
 
 
     public static String[] loadCredentials() {
-        String[] credentials = new String[2];
+        String[] credentials = new String[3];
         try (InputStream input = new FileInputStream(CREDENTIALS_FILE )) {
             Properties properties = new Properties();
             properties.load(input);
             credentials[0] = properties.getProperty("username");
             credentials[1] = properties.getProperty("token");
+            credentials[2] = properties.getProperty("is_pressed");
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Ошибка при загрузке учетных данных", e);
         }
         return credentials;
     }
 
-    public static void saveCredentials(String username, String token) {
+    public static void saveCredentials(String username, String token, int is_pressed) {
         try (OutputStream output = new FileOutputStream(CREDENTIALS_FILE)) {
             Properties properties = new Properties();
             properties.setProperty("username", username);
             properties.setProperty("token", token);
+            properties.setProperty("is_pressed", String.valueOf(is_pressed));
             properties.store(output, null);
             logger.log(Level.INFO, "Учетные данные для пользователя {0} успешно сохранены.", username);
         } catch (IOException e) {
