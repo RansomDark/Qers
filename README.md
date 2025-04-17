@@ -7,14 +7,17 @@ Qers - средство защиты информации при утере ил
 * WebSite - код сайта
 
 
-# Download
-
-[Releases](https://github.com/RansomDark/Qers/releases)
-QersInstaller.exe - установщик для windows, разрешаем скачивание
-Qers.apk - установщик для android
+# Download 
+   [Releases](https://github.com/RansomDark/Qers/releases)  
+   QersInstaller.exe - установщик для windows, разрешаем скачивание  
+   Qers.apk - установщик для android  
 
 # Requirements
   
 * Windows_x64 10 или более
 * Java 17 или более
 * Andorid 7.0 или более
+
+# Usage
+
+Необходимо зарегистрироваться на сайте или в настольном приложении, а затем авторизоваться в мобильном приложении или на сайте. После регистрации на сайте и в мобильном приложении станет доступен переключатель "Заблокировать". При его нажатии устройство, на котором установлено настольное приложение, будет заблокировано. Блокировка происходит в течение трёх секунд после нажатия. Для корректной работы настольного приложения нужна [Java](https://www.oracle.com/java/technologies/downloads/#jdk24-windows:~:text=x64%20Installer,(sha256)).
